@@ -21,11 +21,9 @@ async def show_stats(message: types.Message):
         await message.answer("Сначала настройте профиль: /set_profile")
         return
     
-    # Сначала отправляем текстовую статистику
     stats_text = _format_stats_text(user_data)
     await message.answer(stats_text)
     
-    # Пытаемся отправить графики
     try:
         # График воды
         water_image = create_water_chart(user_data)
@@ -63,17 +61,14 @@ async def show_stats(message: types.Message):
 def create_water_chart(user_data: dict) -> bytes:
     """Создать простой график воды"""
     try:
-        # Импорты внутри функции для изоляции
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
         
         fig, ax = plt.subplots(figsize=(8, 4))
         
-        # Получаем историю воды
         water_history = user_data.get('water_history', {})
         if isinstance(water_history, list):
-            # Конвертируем список в словарь
             water_dict = {}
             for entry in water_history[-7:]:
                 if isinstance(entry, dict):
@@ -84,7 +79,6 @@ def create_water_chart(user_data: dict) -> bytes:
             dates = sorted(water_history.keys())[-7:]
             amounts = [water_history[date] for date in dates]
             
-            # Создаем простые метки (только день)
             simple_dates = []
             for date_str in dates:
                 try:
@@ -98,7 +92,6 @@ def create_water_chart(user_data: dict) -> bytes:
             ax.set_ylabel('Вода (мл)')
             ax.set_title('Потребление воды')
             
-            # Целевая линия
             goal = user_data.get('water_goal')
             if goal:
                 ax.axhline(y=goal, color='red', linestyle='--', alpha=0.5)
@@ -130,10 +123,7 @@ def create_calories_chart(user_data: dict) -> bytes:
         
         fig, ax = plt.subplots(figsize=(8, 4))
         
-        # Получаем историю калорий
         calorie_history = user_data.get('calorie_history', {})
-        
-        # Обработка данных
         processed_data = {}
         
         if isinstance(calorie_history, list):
@@ -150,12 +140,10 @@ def create_calories_chart(user_data: dict) -> bytes:
             for date in recent_dates:
                 processed_data[date] = calorie_history.get(date, 0)
         
-        # Строим график если есть данные
         if processed_data:
             dates = sorted(processed_data.keys())
             calories = [processed_data[date] for date in dates]
             
-            # Форматируем даты
             formatted_dates = []
             for date_str in dates:
                 try:
@@ -164,20 +152,17 @@ def create_calories_chart(user_data: dict) -> bytes:
                 except (ValueError, TypeError):
                     formatted_dates.append(str(date_str)[:5])
             
-            # Создаем график
             ax.bar(formatted_dates, calories, color='orange', alpha=0.7)
             ax.set_xlabel('Дата')
             ax.set_ylabel('Калории (ккал)')
             ax.set_title('Потребление калорий')
             
-            # Добавляем целевую линию
             goal = user_data.get('calorie_goal')
             if goal and isinstance(goal, (int, float)):
                 ax.axhline(y=goal, color='red', linestyle='--', alpha=0.5, 
                         label=f'Цель: {goal} ккал')
                 ax.legend()
             
-            # Настраиваем внешний вид
             plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
             
         else:
@@ -190,7 +175,6 @@ def create_calories_chart(user_data: dict) -> bytes:
         
         plt.tight_layout()
         
-        # Сохраняем в буфер
         buf = io.BytesIO()
         plt.savefig(buf, format='png', dpi=80, bbox_inches='tight')
         buf.seek(0)
@@ -208,7 +192,6 @@ def create_calories_chart(user_data: dict) -> bytes:
 def create_macros_chart(food_log: list) -> bytes:
     """Создать простой график макронутриентов"""
     try:
-        # Импорты внутри функции для изоляции
         import matplotlib
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
@@ -220,17 +203,14 @@ def create_macros_chart(food_log: list) -> bytes:
                    ha='center', va='center', fontsize=14)
             ax.axis('off')
         else:
-            # Считаем макронутриенты
             protein = sum(food.get('protein', 0) for food in food_log)
             carbs = sum(food.get('carbs', 0) for food in food_log)
             fat = sum(food.get('fat', 0) for food in food_log)
             
-            # Создаем данные для круговой диаграммы
             labels = ['Белки', 'Углеводы', 'Жиры']
             sizes = [protein, carbs, fat]
             colors = ['lightgreen', 'gold', 'lightcoral']
             
-            # Убираем нулевые значения
             filtered_labels = []
             filtered_sizes = []
             filtered_colors = []
@@ -252,7 +232,6 @@ def create_macros_chart(food_log: list) -> bytes:
         
         plt.tight_layout()
         
-        # Сохраняем
         buf = io.BytesIO()
         plt.savefig(buf, format='png', dpi=80, bbox_inches='tight')
         buf.seek(0)
