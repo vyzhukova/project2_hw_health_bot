@@ -1,0 +1,5 @@
+aiogram==3.*
+aiohttp
+python-dotenv
+matplotlib==3.8.2
+requests
